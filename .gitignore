@@ -1,4 +1,8 @@
+# ignore things related to the matlab and octave versions
 /Matlab_v2/
 /Matlab_version/
 Octave*
 octave-workspace
+
+# Ignore the settings of vscode
+settings.json
