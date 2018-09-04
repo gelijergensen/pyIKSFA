@@ -163,13 +163,24 @@ class PolynomialKernel(Kernel):
         :param Y: the right matrix
         :returns: kernel matrix of X and Y
         """
+        return self._getMatrix(self.degree, self.c, X, Y, only_diag)
+
+    def _getMatrix(self, degree, c, X, Y, only_diag=False):
+        """Returns the Kernel matrix of X and Y (assumes that columns of X and Y are individual datapoints)
+
+        :param degree: degree of the polynomial kernel
+        :param c: shift between 0 and +inf, where 1 indicates no bias to small or large terms
+        :param X: the left matrix
+        :param Y: the right matrix
+        :returns: kernel matrix of X and Y
+        """
 
         if only_diag:
             n = min(X.shape[1], Y.shape[1])
             dot_result = np.einsum('ij,ij->j', X[:, :n].conj(), Y[:, :n])
         else:
             dot_result = X.conj().T @ Y
-        return (dot_result + self.c) ** self.degree
+        return (dot_result + c) ** degree
 
     def getGradient(self, Y, X, only_diag=False):
         """Returns the gradient vectors of the kernel function evaluated at each pair of columns of X and Y
