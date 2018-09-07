@@ -219,8 +219,108 @@ def test_LinearKernel_getGradient():
     statement = "The method _getGradient on LinearKernel will return a 3tensor containing one gradient vector for " + \
                 "each pair of columns of the two input matrices, i and j, respectively (tensor[:, i, j])"
     
+    expected_result = "ValueError"
+    try:
+        actual_result = kernel._getGradient(1, 1, np.array([[1], [2]]), np.array([[1], [2], [3]]))
+    except ValueError:
+        actual_result = "ValueError"
+    testFunction(statement, expected_result, actual_result)
+
+    expected_result = np.array([[[1]], [[2]], [[3]]])
+    actual_result = kernel._getGradient(1, 1, np.array([[4], [5], [6]]), np.array([[1], [2], [3]]))
+    testFunction(statement, expected_result, actual_result)
+    
+    A = np.arange(200).reshape(10, 20)
+    B = np.arange(20, 180).reshape(10, 16)
+    expected_result = np.repeat(B.copy(), 20, axis=0).reshape(10, 20, 16)
+    actual_result = kernel._getGradient(1, 1, A, B)
+    testFunction(statement, expected_result, actual_result)
+
+    A = np.arange(200).reshape(10, 20) + 1.0j * np.arange(200, 400).reshape(10, 20)
+    B = np.arange(20, 180).reshape(10, 16) + 1.0j * np.arange(160, 320).reshape(10, 16)
+    expected_result = np.repeat(B.copy(), 20, axis=0).reshape(10, 20, 16)
+    actual_result = kernel._getGradient(1, 1, A, B)
+    testFunction(statement, expected_result, actual_result)
+
+    A = np.arange(200).reshape(10, 20)
+    B = np.arange(20, 180).reshape(10, 16)
+    expected_result = B.copy().reshape(10, 1, 16)
+    actual_result = kernel._getGradient(1, 1, A, B, only_diag=True)
+
+
+def test_LinearKernel():
+    test_LinearKernel_getDimension()
+    test_LinearKernel_getMatrix()
+    test_LinearKernel_getGradient()
+    return 3
+
+
+def test_QuadraticKernel_getDimension():
+    kernel = Kernel.QuadraticKernel
+
+    statement = "The method _getDimension on QuadraticKernel will return the dimension of the data after a " + \
+                "quadratic expansion function is applied"
+    
+    expected_result = 5
+    actual_result = kernel._getDimension(2, (2, 0))
+    testFunction(statement, expected_result, actual_result)
+
+    expected_result = (7 + 6 + 5 + 4 + 3 + 2 + 1) + 7
+    actual_result = kernel._getDimension(2, (7, 20))
+    testFunction(statement, expected_result, actual_result)
+
+
+def test_QuadraticKernel_getMatrix():
+    kernel = Kernel.QuadraticKernel
+
+    statement = "The method _getMatrix on QuadraticKernel will return a matrix(i, j) containing the element-wise " + \
+                "square of 1 + the dot products of the ith column of the left matrix with the jth column of the " + \
+                "right matrix"
+
+    expected_result = "ValueError"
+    try:
+        actual_result = kernel._getMatrix(2, 1, np.array([[1], [2]]), np.array([[1], [2], [3]]))
+    except ValueError:
+        actual_result = "ValueError"
+    testFunction(statement, expected_result, actual_result)
+
+    expected_result = (1 + np.array([[14]])) ** 2
+    actual_result = kernel._getMatrix(2, 1, np.array([[1], [2], [3]]), np.array([[1], [2], [3]]))
+    testFunction(statement, expected_result, actual_result)
+
+    def phi(X):
+        """This should be the quadratic expansion function"""
+        Y = np.zeros((kernel._getDimension(2, X.shape), X.shape[1]))
+        Y[:X.shape[0], :] = X.copy()
+        base = X.shape[0]
+        for i in range(X.shape[0]):
+            print(Y)
+            inc = X.shape[0] - i
+            Y[base:base+inc, :] = X[i:] * X[i]
+            base += inc
+        print(Y)
+        print()
+        return Y
+    statement_phi = "The testMethod phi returns the quadratic expansion of the columns of the input matrix"
+    A = np.array([[1, 2, 3]])
+    expected_result = np.array([[1, 2, 3], [1, 4, 9]])
+    actual_result = phi(A)
+    testFunction(statement_phi, expected_result, actual_result)
+    A = np.array([[1, 2, 3], [2, 3, 4]])
+    expected_result = np.array([[1, 2, 3], [2, 3, 4], [1, 4, 9], [2, 6, 12], [4, 9, 16]])
+    actual_result = phi(A)
+    testFunction(statement_phi, expected_result, actual_result)
+
+    A = np.arange(200).reshape(10, 20)
+    B = np.arange(20, 180).reshape(10, 16)
+    
 
 
 if __name__ == "__main__":
-    test_LinearKernel_getDimension()
-    test_LinearKernel_getMatrix()
+    testCount = 0
+    testCount += test_LinearKernel()
+
+    test_QuadraticKernel_getDimension()
+    test_QuadraticKernel_getMatrix()
+
+    print("All %d Tests Complete." % testCount)

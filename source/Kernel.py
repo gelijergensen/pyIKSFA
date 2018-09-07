@@ -141,7 +141,7 @@ class PolynomialKernel(Kernel):
         :param n: dimension of the input data
         :returns: an integer for the number of dimensions in the expansion of a n-dim vector
         """
-        return self._getDimension(self, self.degree, input_shape)
+        return self._getDimension(self.degree, input_shape)
 
     def _getDimension(self, degree, input_shape):
         """Returns the dimension of the implicit space (useful for determining how many dimensions to keep after 
