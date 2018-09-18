@@ -1,5 +1,7 @@
 # pyIKSFA
 
+Status: Incomplete (in development)
+
 ## Theory of Incremental Kernel Slow Feature Analysis
 
 Slow Feature Analysis (SFA) is an unsupervised learning method similar to
