@@ -1,6 +1,6 @@
 # pyIKSFA
 
-## Incremental Kernel Slow Feature Analysis
+## Theory of Incremental Kernel Slow Feature Analysis
 
 Slow Feature Analysis (SFA) is an unsupervised learning method similar to
 Principal Component Analysis (PCA). It operates on the principle that important
@@ -37,6 +37,41 @@ states that, given an expansion function and an inner product, there exists a
 direct function, called a kernel function, of pairs of the inputs which is
 equivalent to the inner product of the expansion of those inputs. SFA can be
 alternatively formulated as Kernel SFA, which accepts a particular kernel
-function and performs SFA on the data through that kernel function.
+function and performs SFA on the data through that kernel function. _Liwicki et
+al. (2015)_ provide an implementation of Kernel SFA which also works online[1].
+Rather than requiring the entire dataset at once, their formulation can take the
+dataset incrementally in smaller chunks, which provides it much greater
+flexibility and the possibility of handling datasets orders of magnitude larger.
+On account of the incremental nature of their implementation of SFA, I refer to
+it as Incremental Kernel Slow Feature Analysis, or IKSFA for short. This is the
+primary source for the implementation here.
 
-TODO: Link all the papers in TODO: add figures to explain kernel, math, etc.
+There are some subtle modifications which I made to the original implementation
+put forward in [1]. Namely, because of the lack of necessary details for the
+implementation of Incremental Kernel Principal Component Analysis (IKPCA), I
+refer to the paper from _Chin and Suter (2007)_ on this subject [2]. They, in
+turn, discuss methods for producing a constant-size Reduced Set representation
+of the projection space of the IKPCA. The iterative method I have chosen draws
+primarily from their method, but is influenced by the work of _Schölkopf et al.
+(1998)_ [3] and _Schölkopf et al. (1999)_ [4]
+
+TODO: figures to explain kernel, math, etc. would be nice
+
+<sup>1</sup> S. Liwicki, S. P. Zafeiriou and M. Pantic, "Online Kernel Slow
+Feature Analysis for Temporal Video Segmentation and Tracking," in IEEE
+Transactions on Image Processing, vol. 24, no. 10, pp. 2955-2970, Oct. 2015.
+doi: https://doi.org/10.1109/TIP.2015.2428052
+
+<sup>2</sup> T.-J. Chin, D. Suter, "Incremental kernel principal component
+analysis", IEEE Trans. Image Process., vol. 16, no. 6, pp. 1662-1674, Jun. 2007.
+doi: https://doi.org/10.1109/TIP.2007.896668
+
+<sup>3</sup> B. Schlkopf, P. Knirsch, A. Smola, C. Burges, "Fast approximation
+of support vector kernel expansions and an interpretation of clustering as
+approximation in feature spaces", Proc. DAGM Symp., pp. 124-132, 1998. doi:
+https://doi.org/10.1007/978-3-642-72282-0_12
+
+<sup>4</sup> B. Schlkopf, S. Mika, C. Burges, P. Knirsch, K.-R. Mller, G. Rtsch,
+A. Smola, "Input space vs feature space in kernel-based methods", IEEE Trans.
+Neural Netw., vol. 10, no. 5, pp. 1000-1017, May 1999. doi:
+https://doi.org/10.1109/72.788641
