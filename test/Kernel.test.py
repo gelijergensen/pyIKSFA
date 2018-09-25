@@ -248,11 +248,29 @@ def test_LinearKernel_getGradient():
     actual_result = kernel._getGradient(1, 1, A, B, only_diag=True)
 
 
+def test_LinearKernel_expansion():
+    kernel = Kernel.LinearKernel
+
+    statement = "The method _expansion on LinearKernel will augment the input with a constant and the matrix of " + \
+                "the kernel of two matrices will agree with the dot product of their expansions"
+
+    A = np.array([[1], [2], [3]])
+    expected_result = np.r_[[[1]], A]
+    actual_result = kernel._expansion(1, 1, A)
+    testFunction(statement, expected_result, actual_result)
+
+    A = np.arange(200).reshape(10, 20) / 10
+    B = np.arange(20, 180).reshape(10, 16) / 10
+    expected_result = (kernel._expansion(1, 1, A)).T @ (kernel._expansion(1, 1, B))
+    actual_result = kernel._getMatrix(1, 1, A, B)
+    testFunction(statement, expected_result, actual_result)
+
 def test_LinearKernel():
     test_LinearKernel_getDimension()
     test_LinearKernel_getMatrix()
     test_LinearKernel_getGradient()
-    return 3
+    test_LinearKernel_expansion()
+    return 4
 
 
 def test_QuadraticKernel_getDimension():
@@ -288,33 +306,26 @@ def test_QuadraticKernel_getMatrix():
     actual_result = kernel._getMatrix(2, 1, np.array([[1], [2], [3]]), np.array([[1], [2], [3]]))
     testFunction(statement, expected_result, actual_result)
 
-    def phi(X):
-        """This should be the quadratic expansion function"""
-        Y = np.zeros((kernel._getDimension(2, X.shape), X.shape[1]))
-        Y[:X.shape[0], :] = X.copy()
-        base = X.shape[0]
-        for i in range(X.shape[0]):
-            print(Y)
-            inc = X.shape[0] - i
-            Y[base:base+inc, :] = X[i:] * X[i]
-            base += inc
-        print(Y)
-        print()
-        return Y
-    statement_phi = "The testMethod phi returns the quadratic expansion of the columns of the input matrix"
-    A = np.array([[1, 2, 3]])
-    expected_result = np.array([[1, 2, 3], [1, 4, 9]])
-    actual_result = phi(A)
-    testFunction(statement_phi, expected_result, actual_result)
-    A = np.array([[1, 2, 3], [2, 3, 4]])
-    expected_result = np.array([[1, 2, 3], [2, 3, 4], [1, 4, 9], [2, 6, 12], [4, 9, 16]])
-    actual_result = phi(A)
-    testFunction(statement_phi, expected_result, actual_result)
-
     A = np.arange(200).reshape(10, 20)
     B = np.arange(20, 180).reshape(10, 16)
-    
+    expected_result = (kernel._expansion(2, 1, A)).T @ (kernel._expansion(2, 1, B))
+    actual_result = kernel._getMatrix(2, 1, A, B)
+    testFunction(statement, expected_result, actual_result)
 
+def test_QuadraticKernel_expansion():
+    kernel = Kernel.QuadraticKernel
+
+    statement = "The quadratic expansion will return a constant in the first row, and then the original data, and " + \
+                "then all combinations of two rows in the original data"
+    A = np.array([[1, 2, 3]])
+    expected_result = np.array([[1, 1, 1], [1, 2, 3], [1, 4, 9]])
+    actual_result = kernel._expansion(1, 1, A)
+    testFunction(statement, expected_result, actual_result)
+
+    A = np.array([[2, 4, 6], [1, 0, 9]])
+    expected_result = np.array([[1, 1, 1], [2, 4, 6], [1, 0, 9], [4, 16, 36], [2, 0, 54], [1, 0, 81]])
+    actual_result = kernel._expansion(1, 1, A)
+    testFunction(statement, expected_result, actual_result)
 
 if __name__ == "__main__":
     testCount = 0
@@ -322,5 +333,6 @@ if __name__ == "__main__":
 
     test_QuadraticKernel_getDimension()
     test_QuadraticKernel_getMatrix()
+    test_QuadraticKernel_expansion()
 
     print("All %d Tests Complete." % testCount)

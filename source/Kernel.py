@@ -3,7 +3,7 @@ TODO finish the documentation once you are completely sure how it all works
 
 REMEMBER TO MENTION COLUMN MAJOR!
 
-@author G. Eli Jergensen <gelijergensen@ou.edu> - constructed following the 
+@author G. Eli Jergensen <gelijergensen@ou.edu> - constructed following the
     paper by Stephen Liwicki et. al
 """
 
@@ -18,7 +18,7 @@ from scipy.special import binom
 #         """Returns the result of computing the kernel function, k
 #         over X and Y, i.e. k(X,Y). This is equivalent to
 #         X^t * K * Y, where (.)^t denotes transpose, (.) * (.) denotes
-#         matrix multiplication, and K is the matrix version of the 
+#         matrix multiplication, and K is the matrix version of the
 #         kernel
 
 #         :param X: a numpy array for the left parameter (shape (N, M))
@@ -55,7 +55,7 @@ class Kernel(ABC):
     @abstractmethod
     def getMatrix(self, X, Y, only_diag=False):
         """Returns the result of computing the kernel function, k over X and Y, i.e. k(X,Y). This is equivalent to
-        phi(X)^* phi(Y), where (.)^* denotes conjugate transpose, and phi is the implicit expansion function related to 
+        phi(X)^* phi(Y), where (.)^* denotes conjugate transpose, and phi is the implicit expansion function related to
         the kernel function
 
         :param X: a numpy array for the left parameter (shape (N, M))
@@ -67,7 +67,7 @@ class Kernel(ABC):
 
     @abstractmethod
     def getDimension(self, input_shape):
-        """Returns the dimension of the implicit space, which may be useful as a default value for the dimensionality 
+        """Returns the dimension of the implicit space, which may be useful as a default value for the dimensionality
         reduction of the whitening step in KSFA
 
         :param input_shape: a tuple for the shape of the input data (dimension of datapoint, number of datapoints)
@@ -81,7 +81,7 @@ class Kernel(ABC):
         Given k(a1, ..., an, b1, ..., bn), define the right-gradient vector as
         Vr(k) = (del(k)/del(b1), ..., del(k)/del(bn)),
         i.e. the vector of the partial derivatives of k with regards to the components of the right vector
-        
+
         For evaluation, each column of X is used once as the left vector and y is always used as the right vector
         i.e. Vr(k)(X = [x1 x2], Y = [y1 y2]) = [Vr(k)(x1, y1) Vr(k)(x1, y1)]
                                                [Vr(k)(x2, y1) Vr(k)(x2, y2)]
@@ -89,11 +89,20 @@ class Kernel(ABC):
         :param Y: a matrix whose columns are inputs to the left input of the gradient of the kernel function
         :param X: a matrix whose columns are inputs to the right input of the gradient of the kernel function
         :param only_diag: if set to true, then only the diagonal of the resulting 3-Tensor is computed
-        :returns: a numpy array of shape (n, X.shape[1], Y.shape[1]), where n is the dimension of the input vectors 
-            (i.e. X.shape[0]). Each of the elements along the first axis is the gradient evaluated at the pair 
-            (xi, yj), Vr(k)(xi, yj). If :only_diag: is set to True, then a numpy array of shape 
-            (n, min(X.shape[1], Y.shape[1])) is returned instead and each element along the first axis is the gradient 
+        :returns: a numpy array of shape (n, X.shape[1], Y.shape[1]), where n is the dimension of the input vectors
+            (i.e. X.shape[0]). Each of the elements along the first axis is the gradient evaluated at the pair
+            (xi, yj), Vr(k)(xi, yj). If :only_diag: is set to True, then a numpy array of shape
+            (n, min(X.shape[1], Y.shape[1])) is returned instead and each element along the first axis is the gradient
             evaluated at the pair (xi, yi)
+        """
+        pass
+
+    @abstractmethod
+    def expansion(self, X):
+        """Returns the result of the equivalent expansion on the columns of X. If no expansion can be explicitly written, simply returns None
+
+        param X: a matrix whose columns correspond to individual input variables
+        returns: The matrix of expanded inputs or None if no expansion can be explicitly written
         """
         pass
 
@@ -125,7 +134,7 @@ class Kernel(ABC):
 class PolynomialKernel(Kernel):
 
     def __init__(self, degree, c=1):
-        """Initializes the polynomial kernel with a particular degree and possibly a parameter to shift the weight of 
+        """Initializes the polynomial kernel with a particular degree and possibly a parameter to shift the weight of
         smaller and larger terms
 
         :param degree: degree of the polynomial kernel
@@ -135,7 +144,7 @@ class PolynomialKernel(Kernel):
         self.c = c
 
     def getDimension(self, input_shape):
-        """Returns the dimension of the implicit space (useful for determining how many dimensions to keep after 
+        """Returns the dimension of the implicit space (useful for determining how many dimensions to keep after
         whitening in KSFA)
 
         :param n: dimension of the input data
@@ -143,8 +152,9 @@ class PolynomialKernel(Kernel):
         """
         return self._getDimension(self.degree, input_shape)
 
-    def _getDimension(self, degree, input_shape):
-        """Returns the dimension of the implicit space (useful for determining how many dimensions to keep after 
+    @staticmethod
+    def _getDimension(degree, input_shape):
+        """Returns the dimension of the implicit space (useful for determining how many dimensions to keep after
         whitening in KSFA)
 
         :param degree: degree of the polynomial kernel
@@ -153,7 +163,7 @@ class PolynomialKernel(Kernel):
         """
         n = input_shape[0]
         num_of_degree = np.arange(degree)
-        num_of_degree = binom( n + num_of_degree, n - 1)
+        num_of_degree = binom(n + num_of_degree, n - 1)
         return int(num_of_degree.sum())
 
     def getMatrix(self, X, Y, only_diag=False):
@@ -165,7 +175,8 @@ class PolynomialKernel(Kernel):
         """
         return self._getMatrix(self.degree, self.c, X, Y, only_diag)
 
-    def _getMatrix(self, degree, c, X, Y, only_diag=False):
+    @staticmethod
+    def _getMatrix(degree, c, X, Y, only_diag=False):
         """Returns the Kernel matrix of X and Y (assumes that columns of X and Y are individual datapoints)
 
         :param degree: degree of the polynomial kernel
@@ -188,16 +199,16 @@ class PolynomialKernel(Kernel):
         :param Y: a matrix whose columns are inputs to the left input of the gradient of the kernel function
         :param X: a matrix whose columns are inputs to the right input of the gradient of the kernel function
         :param only_diag: if set to true, then only the diagonal of the resulting 3-Tensor is computed
-        :returns: a 3-Tensor of shape (n, X.shape[1], Y.shape[1]), where n is the dimension of the input vectors 
-            (i.e. X.shape[0]). Each of the elements along the first axis is the gradient evaluated at the pair 
-            (xi, yj), Vr(k)(xi, yj). If :only_diag: is set to True, then a 3-Tensor of shape 
-            (n, 1, min(X.shape[1], Y.shape[1])) is returned instead and each element along the first is the gradient 
+        :returns: a 3-Tensor of shape (n, X.shape[1], Y.shape[1]), where n is the dimension of the input vectors
+            (i.e. X.shape[0]). Each of the elements along the first axis is the gradient evaluated at the pair
+            (xi, yj), Vr(k)(xi, yj). If :only_diag: is set to True, then a 3-Tensor of shape
+            (n, 1, min(X.shape[1], Y.shape[1])) is returned instead and each element along the first is the gradient
             evaluated at the pair (xi, yi)
         """
         return self._getGradient(self.degree, self.c, Y, X, only_diag)
 
-
-    def _getGradient(self, degree, c, Y, X, only_diag=False):
+    @staticmethod
+    def _getGradient(degree, c, Y, X, only_diag=False):
         """Returns the gradient vectors of the kernel function evaluated at each pair of columns of X and Y
 
         :param degree: degree of the polynomial kernel
@@ -205,16 +216,17 @@ class PolynomialKernel(Kernel):
         :param Y: a matrix whose columns are inputs to the left input of the gradient of the kernel function
         :param X: a matrix whose columns are inputs to the right input of the gradient of the kernel function
         :param only_diag: if set to true, then only the diagonal of the resulting 3-Tensor is computed
-        :returns: a 3-Tensor of shape (n, X.shape[1], Y.shape[1]), where n is the dimension of the input vectors 
-            (i.e. X.shape[0]). Each of the elements along the first axis is the gradient evaluated at the pair 
-            (xi, yj), Vr(k)(xi, yj). If :only_diag: is set to True, then a 3-Tensor of shape 
-            (n, 1, min(X.shape[1], Y.shape[1])) is returned instead and each element along the first is the gradient 
+        :returns: a 3-Tensor of shape (n, X.shape[1], Y.shape[1]), where n is the dimension of the input vectors
+            (i.e. X.shape[0]). Each of the elements along the first axis is the gradient evaluated at the pair
+            (xi, yj), Vr(k)(xi, yj). If :only_diag: is set to True, then a 3-Tensor of shape
+            (n, 1, min(X.shape[1], Y.shape[1])) is returned instead and each element along the first is the gradient
             evaluated at the pair (xi, yi)
         """
-        
+
         if only_diag:
             n = min(X.shape[1], Y.shape[1])
-            dot_result = np.einsum('ij,ij->j', Y[:, :n].conj(), X[:, :n]) # (n, )
+            dot_result = np.einsum(
+                'ij,ij->j', Y[:, :n].conj(), X[:, :n])  # (n, )
         else:
             n = X.shape[1]
             dot_result = Y.conj().T @ X  # (n, p)
@@ -229,13 +241,50 @@ class PolynomialKernel(Kernel):
         #     print(np.einsum('ij,...j->i...j', X[:, :n], dot_result))
 
         # np.einsum('ij,ki->ijk', dot_result, X[:, :n])
-        return np.einsum('ij,...j->i...j', X[:, :n], dot_result)  # (m, p, n) or (m, n)
+        # (m, p, n) or (m, n)
+        return np.einsum('ij,...j->i...j', X[:, :n], dot_result)
+
+    def expansion(self, X):
+        """Returns the result of the equivalent expansion on the columns of X. If no expansion can be explicitly written, simply returns None
+
+        param X: a matrix whose columns correspond to individual input variables
+        returns: The matrix of expanded inputs or None if no expansion can be explicitly written
+        """
+        return self._expansion(self.degree, self.c, X)
+
+    @staticmethod
+    def _expansion(degree, c, X):
+        """Returns the result of the equivalent expansion on the columns of X. If no expansion can be explicitly written, simply returns None
+
+        param X: a matrix whose columns correspond to individual input variables
+        returns: The matrix of expanded inputs or None if no expansion can be explicitly written
+        """
+        return NotImplementedError
+
+
+def linearExpansion(c, X):
+    return np.r_[c * np.ones((1, X.shape[1])), X]
+
+
+def quadraticExpansion(c, X):
+    Y = np.zeros((PolynomialKernel._getDimension(2, X.shape) + 1, X.shape[1]))
+    Y[0, :] = c
+    Y[1:1+X.shape[0], :] = X.copy()
+    base = X.shape[0]+1
+    for i in range(X.shape[0]):
+        inc = X.shape[0] - i
+        Y[base:base+inc, :] = X[i:] * X[i]
+        base += inc
+    return Y
+
 
 QuadraticKernel = PolynomialKernel(2)
+QuadraticKernel._expansion = lambda degree, c, X: quadraticExpansion(c, X)
 LinearKernel = PolynomialKernel(1)
+LinearKernel._expansion = lambda degree, c, X: linearExpansion(c, X)
 
 # class QuadraticKernel(Kernel):
-    
+
 #     def _derivative(self, y, alphas, data):
 #         """Helper method which .......
 
@@ -286,7 +335,7 @@ LinearKernel = PolynomialKernel(1)
 #         # else:
 #         #     print("Nope, that's not square")
 #         #     return np.linalg.lstsq(D.conj().T, N.conj().T)[0].conj().T
-    
+
 #     def expansion(self, data):
 #         """Assumes that the data has rows which are variables and columns which
 #         are independent occurences and computes the expansion which we expect
@@ -322,13 +371,13 @@ LinearKernel = PolynomialKernel(1)
 #         #         {
 #         #             accum += *(A1+j*m1+n) *  *(A2+i*m2+n);
 #         #             for(t=n; t<m1;t++){
-                    
+
 #         #                 accum += *(A1+j*m1+t) * *(A1+j*m1+n) * *(A2+i*m2+t) * *(A2+i*m2+n);
-                    
-#         #             }            
+
+#         #             }
 #         #         }
 #         #         K[ j + i*n1 ] = (accum );
-#         #     }     
+#         #     }
 #         # }
 
 #         # TODO I am not certain that the above math is truly correct for the quadratic kernel...
@@ -377,11 +426,10 @@ LinearKernel = PolynomialKernel(1)
 #                 K[j,i] = acc
 #                 K2[j,i] = acc2
 
-       
 
 #         # A faster way? Probably not
 #         # K[i,j] = X[j,n]*Y[i,n]*(1+(X[j,n:m1]*Y[i,n:m1]).sum()) for n in range(m1)
-        
+
 #         print("Here, compare:")
 #         print(K2 - L)
 #         print(K - L)
@@ -411,7 +459,7 @@ LinearKernel = PolynomialKernel(1)
 #         for _ in range(maxIt):
 #             y += rate * self._derivative(y, alphas, data)
 #             print(".", end='', flush=True)
-        
+
 #         print("\nend")
 #         return y
 
@@ -422,7 +470,6 @@ LinearKernel = PolynomialKernel(1)
 #         """
 #         d = dim + dim*(dim+1)/2
 #         return (dif / d) < 1e-5
-
 
 
 # from oct2py import octave
@@ -448,7 +495,7 @@ LinearKernel = PolynomialKernel(1)
 
 #     def getPreimage(self, alphas, data, dif):
 #         return octave.QuadraticKernel_getPreimage(alphas, data, dif)
-    
+
 #     def tolerance(self, dif, dim):
 #         return octave.QuadraticKernel_tolerance(dif, dim)
 
@@ -461,5 +508,3 @@ LinearKernel = PolynomialKernel(1)
 #             n-dim vector
 #         """
 #         return int((n+1)*(n+2)/2) - 1
-
-
