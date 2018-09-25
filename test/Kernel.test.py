@@ -248,11 +248,30 @@ def test_LinearKernel_getGradient():
     actual_result = kernel._getGradient(1, 1, A, B, only_diag=True)
 
 
+def test_LinearKernel_expansion():
+    kernel = Kernel.LinearKernel
+
+    statement = "The method _expansion on LinearKernel will simply return its input and the matrix of the kernel of " +\
+                "two matrices will agree with the dot product of their expansions"
+
+    A = np.array([[1], [2], [3]])
+    expected_result = np.r_[[[1]], A]
+    actual_result = kernel._expansion(1, 1, A)
+    print(actual_result)
+    testFunction(statement, expected_result, actual_result)
+
+    A = np.arange(200).reshape(10, 20) / 10
+    B = np.arange(20, 180).reshape(10, 16) / 10
+    expected_result = (kernel._expansion(1, 1, A)).T @ (kernel._expansion(1, 1, B))
+    actual_result = kernel._getMatrix(1, 1, A, B)
+    testFunction(statement, expected_result, actual_result)
+
 def test_LinearKernel():
     test_LinearKernel_getDimension()
     test_LinearKernel_getMatrix()
     test_LinearKernel_getGradient()
-    return 3
+    test_LinearKernel_expansion()
+    return 4
 
 
 def test_QuadraticKernel_getDimension():
@@ -313,7 +332,6 @@ def test_QuadraticKernel_getMatrix():
 
     A = np.arange(200).reshape(10, 20)
     B = np.arange(20, 180).reshape(10, 16)
-    
 
 
 if __name__ == "__main__":
