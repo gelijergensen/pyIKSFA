@@ -266,12 +266,21 @@ def linearExpansion(c, X):
     return np.r_[c * np.ones((1, X.shape[1])), X]
 
 
+<<<<<<< HEAD
 def quadraticExpansion(c, X):
     Y = np.zeros((PolynomialKernel._getDimension(2, X.shape) + 1, X.shape[1]))
     Y[0, :] = c
     Y[1:1+X.shape[0], :] = X.copy()
     base = X.shape[0]+1
     for i in range(X.shape[0]):
+=======
+def quadraticExpansion(X):
+    Y = np.zeros((PolynomialKernel._getDimension(2, X.shape), X.shape[1]))
+    Y[:X.shape[0], :] = X.copy()
+    base = X.shape[0]
+    for i in range(X.shape[0]):
+        print(Y)
+>>>>>>> dfff9f094225b06b8026889973563260184db691
         inc = X.shape[0] - i
         Y[base:base+inc, :] = X[i:] * X[i]
         base += inc
@@ -279,7 +288,11 @@ def quadraticExpansion(c, X):
 
 
 QuadraticKernel = PolynomialKernel(2)
+<<<<<<< HEAD
 QuadraticKernel._expansion = lambda degree, c, X: quadraticExpansion(c, X)
+=======
+QuadraticKernel._expansion = lambda degree, c, X: quadraticExpansion(X)
+>>>>>>> dfff9f094225b06b8026889973563260184db691
 LinearKernel = PolynomialKernel(1)
 LinearKernel._expansion = lambda degree, c, X: linearExpansion(c, X)
 
