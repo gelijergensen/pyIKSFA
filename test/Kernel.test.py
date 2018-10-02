@@ -265,6 +265,7 @@ def test_LinearKernel_expansion():
     actual_result = kernel._getMatrix(1, 1, A, B)
     testFunction(statement, expected_result, actual_result)
 
+
 def test_LinearKernel():
     test_LinearKernel_getDimension()
     test_LinearKernel_getMatrix()
@@ -312,6 +313,39 @@ def test_QuadraticKernel_getMatrix():
     actual_result = kernel._getMatrix(2, 1, A, B)
     testFunction(statement, expected_result, actual_result)
 
+    A = np.arange(200).reshape(10, 20) + 1.0j * np.arange(200, 400).reshape(10, 20)
+    B = np.arange(20, 180).reshape(10, 16) + 1.0j * np.arange(160, 320).reshape(10, 16)
+    expected_result = (kernel._expansion(2, 1, A)).conj().T @ (kernel._expansion(2, 1, B))
+    actual_result = kernel._getMatrix(2, 1, A, B)
+    testFunction(statement, expected_result, actual_result)
+
+    A = np.arange(200).reshape(10, 20) + 1.0j * np.arange(200, 400).reshape(10, 20)
+    B = np.arange(20, 180).reshape(10, 16) + 1.0j * np.arange(160, 320).reshape(10, 16)
+    expected_result = np.diag((kernel._expansion(2, 1, A)).conj().T @ (kernel._expansion(2, 1, B)))
+    actual_result = kernel._getMatrix(2, 1, A, B, only_diag=True)
+    testFunction(statement, expected_result, actual_result)
+
+
+def test_QuadraticKernel_getGradient():
+    kernel = Kernel.QuadraticKernel
+
+    statement = "The method _getGradient on Quadratic will return a 3tensor containing one gradient vector for " + \
+                "each pair of columns of the two input matrices, i and j, respectively (tensor[:, i, j])"
+
+    expected_result = "ValueError"
+    try:
+        actual_result = kernel._getGradient(2, 1, np.array([[1], [2]]), np.array([[1], [2], [3]]))
+    except ValueError:
+        actual_result = "ValueError"
+    testFunction(statement, expected_result, actual_result)
+
+    A = np.array([[4], [5], [6]])
+    B = np.array([[1], [2], [3]])
+    expected_result = np.array([[[1]], [[2]], [[3]]])
+    actual_result = kernel._getGradient(2, 1, np.array([[4], [5], [6]]), np.array([[1], [2], [3]]))
+    testFunction(statement, expected_result, actual_result)
+
+
 def test_QuadraticKernel_expansion():
     kernel = Kernel.QuadraticKernel
 
@@ -328,12 +362,17 @@ def test_QuadraticKernel_expansion():
     actual_result = kernel._expansion(2, 1, A)
     testFunction(statement, expected_result, actual_result)
 
+
+def test_QuadraticKernel():
+    test_QuadraticKernel_getDimension()
+    test_QuadraticKernel_getMatrix()
+    test_QuadraticKernel_getGradient()
+    test_QuadraticKernel_expansion()
+    return 4
+
 if __name__ == "__main__":
     testCount = 0
     testCount += test_LinearKernel()
-
-    test_QuadraticKernel_getDimension()
-    test_QuadraticKernel_getMatrix()
-    test_QuadraticKernel_expansion()
+    testCount += test_QuadraticKernel()
 
     print("All %d Tests Complete." % testCount)

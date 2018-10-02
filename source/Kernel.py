@@ -267,7 +267,10 @@ def linearExpansion(c, X):
 
 
 def quadraticExpansion(c, X):
-    Y = np.zeros((PolynomialKernel._getDimension(2, X.shape) + 1, X.shape[1]))
+    dtype = np.dtype('complex64') if np.any(
+        np.iscomplex(X)) else np.dtype('float64')
+    Y = np.zeros((PolynomialKernel._getDimension(
+        2, X.shape) + 1, X.shape[1]), dtype=dtype)
     Y[0, :] = c
     Y[1:1+X.shape[0], :] = X.copy() * np.sqrt(2)
     base = X.shape[0]+1
