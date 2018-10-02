@@ -251,21 +251,12 @@ def test_LinearKernel_getGradient():
 def test_LinearKernel_expansion():
     kernel = Kernel.LinearKernel
 
-<<<<<<< HEAD
     statement = "The method _expansion on LinearKernel will augment the input with a constant and the matrix of " + \
                 "the kernel of two matrices will agree with the dot product of their expansions"
-=======
-    statement = "The method _expansion on LinearKernel will simply return its input and the matrix of the kernel of " +\
-                "two matrices will agree with the dot product of their expansions"
->>>>>>> dfff9f094225b06b8026889973563260184db691
 
     A = np.array([[1], [2], [3]])
     expected_result = np.r_[[[1]], A]
     actual_result = kernel._expansion(1, 1, A)
-<<<<<<< HEAD
-=======
-    print(actual_result)
->>>>>>> dfff9f094225b06b8026889973563260184db691
     testFunction(statement, expected_result, actual_result)
 
     A = np.arange(200).reshape(10, 20) / 10
@@ -317,26 +308,24 @@ def test_QuadraticKernel_getMatrix():
 
     A = np.arange(200).reshape(10, 20)
     B = np.arange(20, 180).reshape(10, 16)
-<<<<<<< HEAD
     expected_result = (kernel._expansion(2, 1, A)).T @ (kernel._expansion(2, 1, B))
     actual_result = kernel._getMatrix(2, 1, A, B)
     testFunction(statement, expected_result, actual_result)
 
 def test_QuadraticKernel_expansion():
     kernel = Kernel.QuadraticKernel
-=======
->>>>>>> dfff9f094225b06b8026889973563260184db691
 
     statement = "The quadratic expansion will return a constant in the first row, and then the original data, and " + \
-                "then all combinations of two rows in the original data"
+                "then all combinations of two rows in the original data. All combinations except the constant and " + \
+                "the perfect squares are multiplied by the constant sqrt(2)"
     A = np.array([[1, 2, 3]])
-    expected_result = np.array([[1, 1, 1], [1, 2, 3], [1, 4, 9]])
-    actual_result = kernel._expansion(1, 1, A)
+    expected_result = np.array([[1, 1, 1], (np.array([1, 2, 3]) * np.sqrt(2)), [1, 4, 9]])
+    actual_result = kernel._expansion(2, 1, A)
     testFunction(statement, expected_result, actual_result)
 
     A = np.array([[2, 4, 6], [1, 0, 9]])
-    expected_result = np.array([[1, 1, 1], [2, 4, 6], [1, 0, 9], [4, 16, 36], [2, 0, 54], [1, 0, 81]])
-    actual_result = kernel._expansion(1, 1, A)
+    expected_result = np.array([[1, 1, 1], (np.array([2, 4, 6]) * np.sqrt(2)), np.array([1, 0, 9]) * np.sqrt(2), [4, 16, 36], np.array([2, 0, 54]) * np.sqrt(2), [1, 0, 81]])
+    actual_result = kernel._expansion(2, 1, A)
     testFunction(statement, expected_result, actual_result)
 
 if __name__ == "__main__":
