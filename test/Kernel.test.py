@@ -341,8 +341,26 @@ def test_QuadraticKernel_getGradient():
 
     A = np.array([[4], [5], [6]])
     B = np.array([[1], [2], [3]])
-    expected_result = np.array([[[1]], [[2]], [[3]]])
-    actual_result = kernel._getGradient(2, 1, np.array([[4], [5], [6]]), np.array([[1], [2], [3]]))
+    expected_result = np.einsum('ij,...j->i...j', B, 2*(1 + A.T @ B))
+    actual_result = kernel._getGradient(2, 1, A, B)
+    testFunction(statement, expected_result, actual_result)
+
+    A = np.arange(200).reshape(10, 20)
+    B = np.arange(20, 180).reshape(10, 16)
+    expected_result = np.einsum('ij,...j->i...j', B, 2*(1 + A.T @ B))
+    actual_result = kernel._getGradient(2, 1, A, B)
+    testFunction(statement, expected_result, actual_result)
+
+    A = np.arange(200).reshape(10, 20) + 1.0j * np.arange(200, 400).reshape(10, 20)
+    B = np.arange(20, 180).reshape(10, 16) + 1.0j * np.arange(160, 320).reshape(10, 16)
+    expected_result = np.einsum('ij,...j->i...j', B, 2*(1 + A.conj().T @ B))
+    actual_result = kernel._getGradient(2, 1, A, B)
+    testFunction(statement, expected_result, actual_result)
+
+    A = np.arange(200).reshape(10, 20) + 1.0j * np.arange(200, 400).reshape(10, 20)
+    B = np.arange(20, 180).reshape(10, 16) + 1.0j * np.arange(160, 320).reshape(10, 16)
+    expected_result = np.einsum('ij,...j->i...j', B, np.diag(2*(1 + A.conj().T @ B)))
+    actual_result = kernel._getGradient(2, 1, A, B, only_diag=True)
     testFunction(statement, expected_result, actual_result)
 
 

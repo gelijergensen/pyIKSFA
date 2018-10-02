@@ -235,11 +235,6 @@ class PolynomialKernel(Kernel):
         dot_result **= degree - 1
         dot_result *= degree
 
-        # if self.degree == 1:
-        #     print("dot_result", dot_result)
-        #     print("X[:, :n]", X[:, :n])
-        #     print(np.einsum('ij,...j->i...j', X[:, :n], dot_result))
-
         # np.einsum('ij,ki->ijk', dot_result, X[:, :n])
         # (m, p, n) or (m, n)
         return np.einsum('ij,...j->i...j', X[:, :n], dot_result)
