@@ -6,3 +6,7 @@ octave-workspace
 
 # Ignore the settings of vscode
 settings.json
+
+# Ignore the __pycache__ folders
+*/__pycache__/*
+*.pyc
